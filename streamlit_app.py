@@ -3,8 +3,6 @@ import pandas as pd
 import altair as alt
 import numpy as np
 
-from pandas_profiling import ProfileReport
-from streamlit_pandas_profiling import st_profile_report
 
 st.title('🤖 Machine Learning App')
 
