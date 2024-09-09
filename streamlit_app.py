@@ -9,7 +9,7 @@ with st.expander('Data'):
   st.write('## Dataset')
   data= pd.read_csv('https://raw.githubusercontent.com/sumukhahe/ML_Project/main/data/dataset.csv')
   data
- st.sidebar.title("Visualization Options")
+ st.sidebar.title('Visualization Options')
 plot_type = st.sidebar.selectbox("Choose Plot Type", ["Line Plot", "Bar Plot", "Histogram"])
 
 # Select columns for x and y axis
