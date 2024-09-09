@@ -42,62 +42,63 @@ elif plot_type == "Histogram":
     )
     st.altair_chart(hist_chart, use_container_width=True) 
 
+# Sidebar for visualization options
 st.sidebar.title("Visualization Options")
+
 # 1. Descriptive Statistics
 st.sidebar.subheader("Descriptive Statistics")
 if st.sidebar.checkbox("Show Descriptive Statistics"):
     st.subheader("Descriptive Statistics")
     st.write(data.describe())
 
-# 2. Correlation Matrix (handling only numerical columns)
+# 2. Correlation Matrix (using Seaborn heatmap)
 st.sidebar.subheader("Correlation Matrix")
 if st.sidebar.checkbox("Show Correlation Matrix"):
     st.subheader("Correlation Matrix")
     numeric_data = data.select_dtypes(include=['int64', 'float64'])
     corr_matrix = numeric_data.corr()
-    st.write(corr_matrix)
-    corr_chart = alt.Chart(corr_matrix.reset_index().melt('index')).mark_rect().encode(
-        alt.X('variable:N', title='Columns'),
-        alt.Y('index:N', title='Columns'),
-        alt.Color('value:Q', scale=alt.Scale(scheme='blueorange'))
-    )
-    st.altair_chart(corr_chart, use_container_width=True)
+    fig, ax = plt.subplots()
+    sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', ax=ax)
+    st.pyplot(fig)
 
-# 3. Distribution of individual columns
-st.sidebar.subheader("Column Distribution")
-column_to_analyze = st.sidebar.selectbox("Select Column for Distribution", numeric_data.columns)
-if st.sidebar.checkbox(f"Show Distribution for {column_to_analyze}"):
-    st.subheader(f"Distribution of {column_to_analyze}")
-    hist_chart = alt.Chart(data).mark_bar().encode(
-        alt.X(column_to_analyze, bin=True),
-        y='count()'
-    )
-    st.altair_chart(hist_chart, use_container_width=True)
-
-
-# 5. Pairplot (Scatter Plot Matrix)
+# 3. Pairplot (Scatter Plot Matrix using Plotly)
 st.sidebar.subheader("Pairplot")
 if st.sidebar.checkbox("Show Pairplot"):
     st.subheader("Pairplot of Numeric Variables")
-    pairplot_fig = sns.pairplot(data[numeric_data.columns])
-    st.pyplot(pairplot_fig)
+    pairplot_fig = px.scatter_matrix(data, dimensions=numeric_data.columns)
+    st.plotly_chart(pairplot_fig)
 
-# 7. Violin Plot
+# 4. Box Plot (using Plotly)
+st.sidebar.subheader("Box Plot")
+box_x_column = st.sidebar.selectbox("Select X-axis Column for Box Plot", data.columns)
+box_y_column = st.sidebar.selectbox("Select Y-axis Column for Box Plot", numeric_data.columns)
+if st.sidebar.checkbox("Show Box Plot"):
+    st.subheader(f"Box Plot of {box_y_column} grouped by {box_x_column}")
+    box_plot = px.box(data, x=box_x_column, y=box_y_column, points="all")
+    st.plotly_chart(box_plot)
+
+# 5. Violin Plot (using Plotly)
 st.sidebar.subheader("Violin Plot")
 if st.sidebar.checkbox("Show Violin Plot"):
     st.subheader(f"Violin Plot of {box_y_column} grouped by {box_x_column}")
-    violin_plot = sns.violinplot(x=box_x_column, y=box_y_column, data=data)
-    st.pyplot(plt.gcf())  # Render current figure
+    violin_plot = px.violin(data, x=box_x_column, y=box_y_column, box=True, points="all")
+    st.plotly_chart(violin_plot)
 
-# 8. Pie Chart for categorical data
+# 6. Scatter Plot (using Plotly for interactive scatter plots)
+st.sidebar.subheader("Scatter Plot")
+scatter_x_column = st.sidebar.selectbox("Select X-axis Column for Scatter Plot", numeric_data.columns)
+scatter_y_column = st.sidebar.selectbox("Select Y-axis Column for Scatter Plot", numeric_data.columns)
+if st.sidebar.checkbox("Show Scatter Plot"):
+    st.subheader(f"Scatter Plot of {scatter_y_column} vs {scatter_x_column}")
+    scatter_plot = px.scatter(data, x=scatter_x_column, y=scatter_y_column, color=box_x_column)
+    st.plotly_chart(scatter_plot)
+
+# 7. Pie Chart for categorical data (using Plotly)
 st.sidebar.subheader("Pie Chart")
 pie_column = st.sidebar.selectbox("Select Column for Pie Chart", data.select_dtypes(include=['object']).columns)
 if st.sidebar.checkbox(f"Show Pie Chart for {pie_column}"):
     st.subheader(f"Pie Chart for {pie_column}")
     pie_data = data[pie_column].value_counts().reset_index()
-    pie_chart = alt.Chart(pie_data).mark_arc().encode(
-        theta=alt.Theta(field=pie_column, type="quantitative"),
-        color=alt.Color(field='index', type="nominal"),
-    )
-    st.altair_chart(pie_chart, use_container_width=True)
+    pie_chart = px.pie(pie_data, values=pie_column, names='index')
+    st.plotly_chart(pie_chart)
  
