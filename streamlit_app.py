@@ -9,4 +9,6 @@ with st.expander('Data'):
   df
 with st.expander('Data Visualization'):
   st.write('## Crop Production per Year')
-  st.scatter_chart(data=df, x='year', y='Production_(in_Tonnes)', color='Crop')
+  source = df
+  st.bar_chart(source, x="Crop", y="Production(in_Tonnes)", color="year", horizontal=True)
+  
