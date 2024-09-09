@@ -7,11 +7,11 @@ st.title('🤖 Machine Learning App')
 st.info('This App is for machine learning analysis')
 with st.expander('Data'):
   st.write('## Dataset')
-  df= pd.read_csv('https://raw.githubusercontent.com/sumukhahe/ML_Project/main/data/dataset.csv')
-  df
+  data= pd.read_csv('https://raw.githubusercontent.com/sumukhahe/ML_Project/main/data/dataset.csv')
+  data
 with st.expander('Data Visualization'):
   st.subheader("Dataset Preview")
-  st.write(df.head())
+  st.write(data.head())
 
 # Sidebar for selecting options
 st.sidebar.title("Visualization Options")
