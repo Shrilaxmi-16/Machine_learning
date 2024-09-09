@@ -1,7 +1,7 @@
-uv pip install
+import numpy as np
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+
 
 # Load the data
 data = pd.read_csv('https://raw.githubusercontent.com/sumukhahe/ML_Project/main/data/dataset.csv')
