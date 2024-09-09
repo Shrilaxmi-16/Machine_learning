@@ -15,7 +15,7 @@ st.write(data.head())
 
 # Sidebar for selecting options
 st.sidebar.title("Visualization Options")
-plot_type = st.sidebar.selectbox("Choose Plot Type", ["Line Plot", "Bar Plot", "Scatter Plot"])
+plot_type = st.sidebar.selectbox("Choose Plot Type", ["Line Plot", "Bar Plot", "Histogram"])
 
 # Select columns for x and y axis
 x_column = st.sidebar.selectbox("Select X-axis Column", data.columns)
@@ -28,10 +28,10 @@ if plot_type == "Line Plot":
 elif plot_type == "Bar Plot":
     st.subheader(f"Bar Plot of {y_column} vs {x_column}")
     st.bar_chart(data[[x_column, y_column]].set_index(x_column))
-elif plot_type == "Scatter Plot":
-    st.subheader(f"Scatter Plot of {y_column} vs {x_column}")
+elif plot_type == "Histogram":
+    st.subheader(f"Histogram of {x_column}")
     fig, ax = plt.subplots()
-    ax.scatter(data[x_column], data[y_column])
+    ax.hist(data[x_column], bins=20, color='blue', edgecolor='black')
     ax.set_xlabel(x_column)
-    ax.set_ylabel(y_column)
+    ax.set_ylabel("Frequency")
     st.pyplot(fig)
