@@ -74,26 +74,6 @@ if st.sidebar.checkbox(f"Show Distribution for {column_to_analyze}"):
     )
     st.altair_chart(hist_chart, use_container_width=True)
 
-# 4. Grouping and Aggregation
-st.sidebar.subheader("Grouping and Aggregation")
-group_column = st.sidebar.selectbox("Select Grouping Column", data.columns)
-agg_column = st.sidebar.selectbox("Select Column to Aggregate", numeric_data.columns)
-agg_function = st.sidebar.selectbox("Select Aggregation Function", ['mean', 'sum', 'min', 'max', 'count'])
-
-if st.sidebar.checkbox("Show Grouped Data"):
-    st.subheader(f"Grouped Data by {group_column}")
-    if agg_function == 'mean':
-        grouped_data = data.groupby(group_column)[agg_column].mean()
-    elif agg_function == 'sum':
-        grouped_data = data.groupby(group_column)[agg_column].sum()
-    elif agg_function == 'min':
-        grouped_data = data.groupby(group_column)[agg_column].min()
-    elif agg_function == 'max':
-        grouped_data = data.groupby(group_column)[agg_column].max()
-    elif agg_function == 'count':
-        grouped_data = data.groupby(group_column)[agg_column].count()
-
-    st.write(grouped_data)
 
 # 5. Pairplot (Scatter Plot Matrix)
 st.sidebar.subheader("Pairplot")
