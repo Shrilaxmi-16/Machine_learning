@@ -10,5 +10,5 @@ with st.expander('Data'):
 with st.expander('Data Visualization'):
   st.write('## Crop Production per Year')
   source = df
-  st.bar_chart(source, x=Crop, y=Production(in_Tonnes), color=year, horizontal=True)
+  st.bar_chart(source, x=year, y=Production(in_Tonnes), color=Crop, horizontal=True)
   
