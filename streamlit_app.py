@@ -1,7 +1,7 @@
 import numpy as np
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
+import altair as alt
 
 # Load the data
 data = pd.read_csv('https://raw.githubusercontent.com/sumukhahe/ML_Project/main/data/dataset.csv')
@@ -24,14 +24,24 @@ y_column = st.sidebar.selectbox("Select Y-axis Column", data.columns)
 # Plot based on selection
 if plot_type == "Line Plot":
     st.subheader(f"Line Plot of {y_column} vs {x_column}")
-    st.line_chart(data[[x_column, y_column]].set_index(x_column))
+    line_chart = alt.Chart(data).mark_line().encode(
+        x=x_column,
+        y=y_column
+    )
+    st.altair_chart(line_chart, use_container_width=True)
+
 elif plot_type == "Bar Plot":
     st.subheader(f"Bar Plot of {y_column} vs {x_column}")
-    st.bar_chart(data[[x_column, y_column]].set_index(x_column))
+    bar_chart = alt.Chart(data).mark_bar().encode(
+        x=x_column,
+        y=y_column
+    )
+    st.altair_chart(bar_chart, use_container_width=True)
+
 elif plot_type == "Histogram":
     st.subheader(f"Histogram of {x_column}")
-    fig, ax = plt.subplots()
-    ax.hist(data[x_column], bins=20, color='blue', edgecolor='black')
-    ax.set_xlabel(x_column)
-    ax.set_ylabel("Frequency")
-    st.pyplot(fig)
+    hist_chart = alt.Chart(data).mark_bar().encode(
+        alt.X(x_column, bin=True),
+        y='count()'
+    )
+    st.altair_chart(hist_chart, use_container_width=True)
