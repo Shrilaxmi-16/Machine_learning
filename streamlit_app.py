@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+import numpy as np
 st.title('🤖 Machine Learning App')
 
 st.info('This App is for machine learning analysis')
@@ -10,7 +11,7 @@ with st.expander('Data'):
   df
 with st.expander('Data Visualization'):
   st.subheader("Dataset Preview")
-  st.write(data.head())
+  st.write(df.head())
 
 # Sidebar for selecting options
 st.sidebar.title("Visualization Options")
