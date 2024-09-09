@@ -82,15 +82,6 @@ if st.sidebar.checkbox("Show Pairplot"):
     pairplot_fig = sns.pairplot(data[numeric_data.columns])
     st.pyplot(pairplot_fig)
 
-# 6. Box Plot
-st.sidebar.subheader("Box Plot")
-box_x_column = st.sidebar.selectbox("Select X-axis Column for Box Plot", data.columns)
-box_y_column = st.sidebar.selectbox("Select Y-axis Column for Box Plot", numeric_data.columns)
-if st.sidebar.checkbox("Show Box Plot"):
-    st.subheader(f"Box Plot of {box_y_column} grouped by {box_x_column}")
-    box_plot = sns.boxplot(x=box_x_column, y=box_y_column, data=data)
-    st.pyplot(plt.gcf())  # Render current figure
-
 # 7. Violin Plot
 st.sidebar.subheader("Violin Plot")
 if st.sidebar.checkbox("Show Violin Plot"):
