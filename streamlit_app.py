@@ -12,8 +12,7 @@ with st.expander('Data'):
 with st.expander('Data Visualization'):
   st.subheader("Dataset Preview")
   st.write(data.head())
-
-# Sidebar for selecting options
+  # Sidebar for selecting options
 st.sidebar.title("Visualization Options")
 plot_type = st.sidebar.selectbox("Choose Plot Type", ["Line Plot", "Bar Plot", "Histogram"])
 
@@ -45,6 +44,3 @@ elif plot_type == "Histogram":
         y='count()'
     )
     st.altair_chart(hist_chart, use_container_width=True)
-
-
-  
