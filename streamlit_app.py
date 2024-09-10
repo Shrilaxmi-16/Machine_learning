@@ -20,11 +20,16 @@ st.sidebar.header("Filter Options")
 selected_state = st.sidebar.selectbox('Select State', data['State_x'].unique())
 selected_crop = st.sidebar.selectbox('Select Crop', data['Crop'].unique())
 
-# Filter data based on sidebar selections
-filtered_data = data[(data['State_x'] == selected_state) & (data['Crop'] == selected_crop)]
+# Adding year filter
+years = st.sidebar.slider('Select Year Range', int(data['year'].min()), int(data['year'].max()), (int(data['year'].min()), int(data['year'].max())))
+
+# Filter data based on sidebar selections and year
+filtered_data = data[(data['State_x'] == selected_state) & 
+                     (data['Crop'] == selected_crop) &
+                     (data['year'] >= years[0]) & (data['year'] <= years[1])]
 
 # Data Analysis Section
-st.header(f"Data Analysis for {selected_state} and Crop: {selected_crop}")
+st.header(f"Data Analysis for {selected_state} and Crop: {selected_crop} from {years[0]} to {years[1]}")
 
 # Show filtered data
 st.write(filtered_data)
@@ -126,7 +131,3 @@ input_wpi = st.number_input("Enter WPI", min_value=0.0, value=100.0)
 
 predicted_yield = model.predict([[input_area, input_production, input_rainfall, input_wpi]])[0]
 st.write(f"Predicted Yield (kg/Ha): {predicted_yield:.2f}")
-
-# Conclusion Section
-st.write("### Conclusion")
-st.write("This extended analysis provides more insights into the trends, comparisons, and relationships in the agricultural and employment data.")
