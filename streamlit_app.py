@@ -9,7 +9,6 @@ import scipy.stats as stats
 from pandas_profiling import ProfileReport
 from streamlit_pandas_profiling import st_profile_report
 
-
 st.title("Agricultural and Employment Data Analysis")
 
 st.info('This App is for machine learning analysis')
