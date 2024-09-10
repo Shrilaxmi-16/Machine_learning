@@ -5,6 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
+import scipy.stats as stats
+from pandas_profiling import ProfileReport
+from streamlit_pandas_profiling import st_profile_report
 
 
 st.title("Agricultural and Employment Data Analysis")
@@ -15,148 +18,93 @@ with st.expander('Data'):
   data= pd.read_csv('https://raw.githubusercontent.com/sumukhahe/ML_Project/main/data/dataset.csv')
   data
 
+# State selection from user input
+st.sidebar.header("Select State")
+selected_state = st.sidebar.selectbox("Select the state", data["State"].unique())
 
-# Sidebar filters
-st.sidebar.header("Filter Options")
-selected_state = st.sidebar.selectbox('Select State', data['State_x'].unique())
-selected_crop = st.sidebar.selectbox('Select Crop', data['Crop'].unique())
-selected_year = st.sidebar.multiselect('Select Year(s)', data['year'].unique(), default=data['year'].unique())
+# Filter data for the selected state
+state_data = data[data["State"] == selected_state]
 
-# Filter data based on sidebar selections
-filtered_data = data[(data['State_x'] == selected_state) & 
-                     (data['Crop'] == selected_crop) &
-                     (data['year'].isin(selected_year))]
+# 1. Display state's all information
+st.header(f"State Data for {selected_state}")
+st.write(state_data)
 
-# Data Analysis Section
-st.header(f"Detailed Data Analysis for {selected_state} and Crop: {selected_crop} for Selected Years")
+# 2. Summary statistics and Pandas profiling
+st.header(f"Summary Statistics for {selected_state}")
+st.write(state_data.describe())
 
-# Show filtered data
-st.write(filtered_data)
+# Pandas profiling report
+st.subheader(f"Pandas Profiling Report for {selected_state}")
+profile = ProfileReport(state_data, minimal=True)
+st_profile_report(profile)
 
-# 1. Descriptive Statistics
-st.subheader("Descriptive Statistics")
-st.write("### Summary Statistics of the Filtered Data")
-st.write(filtered_data.describe())
+# 3. Normality Test (QQ Plot)
+st.subheader("Normality Test (QQ Plot)")
 
-# 2. Distribution Analysis
-st.subheader("Distribution Analysis")
-st.write("### Distribution of Key Metrics")
+def qq_plot(column):
+    fig, ax = plt.subplots()
+    stats.probplot(state_data[column], dist="norm", plot=ax)
+    plt.title(f"QQ Plot for {column}")
+    st.pyplot(fig)
 
-# Boxplot for Employment Demanded, Offered, and Availed
-st.write("#### Employment Demanded, Offered, and Availed")
-fig, ax = plt.subplots()
-sns.boxplot(data=filtered_data[['Employment_demanded', 'Employment_offered', 'Employment_Availed']], ax=ax)
-st.pyplot(fig)
+# Select a column for normality testing
+numeric_columns = state_data.select_dtypes(include=['int64', 'float64']).columns
+selected_column = st.selectbox("Select a column for QQ plot", numeric_columns)
+qq_plot(selected_column)
 
-# Histogram of Crop Production
-st.write("#### Distribution of Crop Production (in Tonnes)")
-fig, ax = plt.subplots()
-ax.hist(filtered_data['Production_(in_Tonnes)'], bins=20, color='skyblue', edgecolor='black')
-ax.set_xlabel('Production (Tonnes)')
-ax.set_ylabel('Frequency')
-st.pyplot(fig)
+# 4. Spearman Correlation Test
+st.subheader("Spearman Correlation Matrix")
+spearman_corr = state_data.corr(method='spearman')
+st.write(spearman_corr)
 
-# Density Plot of Annual Rainfall
-st.write("#### Distribution of Annual Rainfall")
-fig, ax = plt.subplots()
-sns.kdeplot(filtered_data['Annual_rainfall'], shade=True, color="green", ax=ax)
-ax.set_xlabel('Annual Rainfall (mm)')
-st.pyplot(fig)
+# 5. MGNREGA Lineplot - Demand over the years
+st.subheader(f"MGNREGA Demand Over the Years for {selected_state}")
+mgnrega_demand = state_data.groupby('Year')['MGNREGA_Demand'].sum().reset_index()
 
-# 3. Time Series Analysis
-st.subheader("Time Series Analysis")
+line_chart = alt.Chart(mgnrega_demand).mark_line().encode(
+    x='Year',
+    y='MGNREGA_Demand'
+).properties(
+    width=600,
+    height=400
+)
+st.altair_chart(line_chart)
 
-# Plot with Moving Averages for Production
-st.write("### Time Series: Crop Production with Moving Average")
-fig, ax = plt.subplots()
-ax.plot(filtered_data['year'], filtered_data['Production_(in_Tonnes)'], label='Production (Tonnes)', color='blue')
-ax.plot(filtered_data['year'], filtered_data['Production_(in_Tonnes)'].rolling(window=3).mean(), label='3-Year Moving Average', linestyle='--', color='red')
-ax.set_xlabel('Year')
-ax.set_ylabel('Production (Tonnes)')
-ax.legend()
-st.pyplot(fig)
+# 6. Production of the state each year
+st.subheader(f"Production Over the Years for {selected_state}")
+production_data = state_data.groupby('Year')['Production'].sum().reset_index()
 
-# Rolling Sum for Employment Demanded
-st.write("### Time Series: Employment Demanded with Rolling Sum")
-fig, ax = plt.subplots()
-ax.plot(filtered_data['year'], filtered_data['Employment_demanded'], label='Employment Demanded', color='purple')
-ax.plot(filtered_data['year'], filtered_data['Employment_demanded'].rolling(window=3).sum(), label='3-Year Rolling Sum', linestyle='--', color='orange')
-ax.set_xlabel('Year')
-ax.set_ylabel('Employment Demanded')
-ax.legend()
-st.pyplot(fig)
+line_chart_production = alt.Chart(production_data).mark_line().encode(
+    x='Year',
+    y='Production'
+).properties(
+    width=600,
+    height=400
+)
+st.altair_chart(line_chart_production)
 
-# 4. Correlation and Pair Plot Analysis
-st.subheader("Correlation and Relationship Analysis")
+# 7. Rainfall of the state each year
+st.subheader(f"Rainfall Over the Years for {selected_state}")
+rainfall_data = state_data.groupby('Year')['Rainfall'].sum().reset_index()
 
-# Correlation Heatmap
-st.write("### Correlation Heatmap")
-correlation_cols = ['Rural_Population', 'No_of_Registered', 'Employment_demanded', 'Employment_offered',
-                    'Employment_Availed', 'Area_(in_Ha)', 'Production_(in_Tonnes)', 'Yield_(kg/Ha)',
-                    'MSP', 'Annual_rainfall', 'WPI']
-correlation_data = filtered_data[correlation_cols].corr()
-fig, ax = plt.subplots(figsize=(10,8))
-sns.heatmap(correlation_data, annot=True, cmap='coolwarm', ax=ax)
-st.pyplot(fig)
+line_chart_rainfall = alt.Chart(rainfall_data).mark_line().encode(
+    x='Year',
+    y='Rainfall'
+).properties(
+    width=600,
+    height=400
+)
+st.altair_chart(line_chart_rainfall)
 
-# Pair Plot for Key Metrics
-st.write("### Pairplot for Key Metrics")
-pairplot_cols = ['Employment_demanded', 'Production_(in_Tonnes)', 'Yield_(kg/Ha)', 'Annual_rainfall']
-sns.pairplot(filtered_data[pairplot_cols])
-st.pyplot()
+# 8. Adjusted MSP over the years
+st.subheader(f"Adjusted MSP Over the Years for {selected_state}")
+msp_data = state_data.groupby('Year')['Adjusted_MSP'].sum().reset_index()
 
-# 5. Comparative Analysis of States
-st.subheader("State and Crop Comparison")
-
-metric = st.selectbox("Select a metric to compare across states", ['Production_(in_Tonnes)', 'Yield_(kg/Ha)', 'MSP', 'Employment_demanded'])
-comparison_data = data.groupby(['State_x', 'year'])[[metric]].mean().reset_index()
-
-st.write(f"### Comparison of {metric} across States Over Time")
-fig, ax = plt.subplots(figsize=(10,6))
-sns.lineplot(x='year', y=metric, hue='State_x', data=comparison_data, ax=ax)
-ax.set_xlabel('Year')
-ax.set_ylabel(metric)
-ax.set_title(f"{metric} Comparison Across States")
-st.pyplot(fig)
-
-# 6. Top N Analysis
-st.subheader("Top N Analysis")
-top_n = st.slider("Select Top N", 1, 10, 5)
-top_metric = st.selectbox("Select a metric for ranking", ['Production_(in_Tonnes)', 'Yield_(kg/Ha)', 'Employment_demanded'])
-
-st.write(f"### Top {top_n} States Based on {top_metric}")
-top_states = data.groupby('State_x')[[top_metric]].mean().nlargest(top_n, top_metric).reset_index()
-
-fig, ax = plt.subplots()
-sns.barplot(x='State_x', y=top_metric, data=top_states, ax=ax)
-ax.set_xlabel('State')
-ax.set_ylabel(top_metric)
-st.pyplot(fig)
-
-# 7. Prediction Model for Crop Yield
-st.subheader("Prediction Model for Crop Yield")
-
-# Features for prediction
-features = ['Area_(in_Ha)', 'Production_(in_Tonnes)', 'Annual_rainfall', 'WPI']
-X = data[features]
-y = data['Yield_(kg/Ha)']
-
-# Train Linear Regression model
-model = LinearRegression()
-model.fit(X, y)
-
-# Prediction Section
-st.write("### Predict Yield Based on Input Features")
-
-input_area = st.number_input("Enter Area (in Ha)", min_value=0.0, value=1000.0)
-input_production = st.number_input("Enter Production (in Tonnes)", min_value=0.0, value=500.0)
-input_rainfall = st.number_input("Enter Annual Rainfall (in mm)", min_value=0.0, value=10.0)
-input_wpi = st.number_input("Enter WPI", min_value=0.0, value=100.0)
-
-predicted_yield = model.predict([[input_area, input_production, input_rainfall, input_wpi]])[0]
-st.write(f"Predicted Yield (kg/Ha): {predicted_yield:.2f}")
-
-# Conclusion Section
-st.write("### Conclusion")
-st.write("This comprehensive analysis provides detailed insights into the trends, relationships, and predictive modeling for agricultural and employment data.")
-
+line_chart_msp = alt.Chart(msp_data).mark_line().encode(
+    x='Year',
+    y='Adjusted_MSP'
+).properties(
+    width=600,
+    height=400
+)
+st.altair_chart(line_chart_msp)
