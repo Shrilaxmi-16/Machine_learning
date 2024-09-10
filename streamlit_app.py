@@ -65,8 +65,8 @@ st.subheader(f"MGNREGA Demand Over the Years for {selected_state}")
 mgnrega_demand = state_data.groupby('Year')['MGNREGA_Demand'].sum().reset_index()
 
 line_chart = alt.Chart(mgnrega_demand).mark_line().encode(
-    x='Year',
-    y='MGNREGA_Demand'
+    x='year',
+    y='Employement_demanded'
 ).properties(
     width=600,
     height=400
@@ -78,8 +78,8 @@ st.subheader(f"Production Over the Years for {selected_state}")
 production_data = state_data.groupby('Year')['Production'].sum().reset_index()
 
 line_chart_production = alt.Chart(production_data).mark_line().encode(
-    x='Year',
-    y='Production'
+    x='year',
+    y='Production_(in_Tonnes)'
 ).properties(
     width=600,
     height=400
@@ -88,11 +88,11 @@ st.altair_chart(line_chart_production)
 
 # 7. Rainfall of the state each year
 st.subheader(f"Rainfall Over the Years for {selected_state}")
-rainfall_data = state_data.groupby('Year')['Rainfall'].sum().reset_index()
+rainfall_data = state_data.groupby('year')['Annual_rainfall'].sum().reset_index()
 
 line_chart_rainfall = alt.Chart(rainfall_data).mark_line().encode(
-    x='Year',
-    y='Rainfall'
+    x='year',
+    y='Annual_rainfall'
 ).properties(
     width=600,
     height=400
@@ -101,11 +101,11 @@ st.altair_chart(line_chart_rainfall)
 
 # 8. Adjusted MSP over the years
 st.subheader(f"Adjusted MSP Over the Years for {selected_state}")
-msp_data = state_data.groupby('Year')['Adjusted_MSP'].sum().reset_index()
+msp_data = state_data.groupby('year')['MSP'].sum().reset_index()
 
 line_chart_msp = alt.Chart(msp_data).mark_line().encode(
-    x='Year',
-    y='Adjusted_MSP'
+    x='year',
+    y='MSP'
 ).properties(
     width=600,
     height=400
