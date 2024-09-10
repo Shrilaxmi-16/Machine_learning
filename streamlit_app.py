@@ -4,7 +4,7 @@ import altair as alt
 import numpy as np
 
 
-st.title('🤖 Machine Learning App')
+st.title('🤖 Machine Learning App for employement demand')
 
 st.info('This App is for machine learning analysis')
 with st.expander('Data'):
