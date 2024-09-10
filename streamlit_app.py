@@ -19,7 +19,7 @@ with st.expander('Data'):
 st.sidebar.header("Filter Options")
 selected_state = st.sidebar.selectbox('Select State', data['State_x'].unique())
 selected_crop = st.sidebar.selectbox('Select Crop', data['Crop'].unique())
-selected_year = st.sidebar.selectbox('Select Year(s)', data['year'].unique(), default=data['year'].unique())
+selected_year = st.sidebar.selectbox('Select Year(s)', data['year'].unique())
 
 # Filter data based on sidebar selections
 filtered_data = data[(data['State_x'] == selected_state) & 
