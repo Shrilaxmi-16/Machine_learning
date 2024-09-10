@@ -17,10 +17,10 @@ with st.expander('Data'):
 
 # State selection from user input
 st.sidebar.header("Select State")
-selected_state = st.sidebar.selectbox("Select the state", data["State"].unique())
+selected_state = st.sidebar.selectbox("Select the state", data["State_x"].unique())
 
 # Filter data for the selected state
-state_data = data[data["State"] == selected_state]
+state_data = data[data["State_x"] == selected_state]
 
 # 1. Display state's all information
 st.header(f"State Data for {selected_state}")
