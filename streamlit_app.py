@@ -12,75 +12,103 @@ st.title("Agricultural and Employment Data Analysis")
 st.info('This App is for machine learning analysis')
 with st.expander('Data'):
   st.write('## Dataset')
-  df= pd.read_csv('https://raw.githubusercontent.com/Shrilaxmi-16/MLOps-shri/main/unique_states_crops.csv')
-  df
-
-# Function to plot QQ plot
-def qq_plot(data, column):
-    stats.probplot(df[column], dist="norm", plot=plt)
-    st.pyplot()
-
-# Function to calculate Spearman correlation
-def spearman_correlation(df, columns):
-    correlation_matrix = df[columns].corr(method='spearman')
-    st.write(correlation_matrix)
-
-# Function to plot MGNREGA Demand
-def plot_mgnrega_demand(df, state):
-    state_data = df[df['State'] == state]
-    st.line_chart(state_data[['year', 'Employment_demanded']].set_index('year'))
-
-# Main Streamlit app
-def main():
-    st.title('Crop Data Analysis by State')
+  data= pd.read_csv('https://raw.githubusercontent.com/Shrilaxmi-16/MLOps-shri/main/unique_states_crops.csv')
+  data
 
 
-    # Select state from the dropdown
-    state = st.selectbox('Select State', df['State'].unique())
+# State selection from user input
+st.sidebar.header("Select State")
+selected_state = st.sidebar.selectbox("Select the state", data["State"].unique())
 
-    # Display all information for the selected state
-    state_data = df[df['State'] == state]
-    st.subheader(f'Data for {state}')
-    st.write(state_data)
+# Filter data for the selected state
+state_data = data[data["State"] == selected_state]
 
-    # Summary statistics
-    st.subheader('Summary Statistics')
-    st.write(state_data.describe())
+# 1. Display state's all information
+st.header(f"State Data for {selected_state}")
+st.write(state_data)
 
-    # Normality test using QQ plot
-    st.subheader('Normality Test (QQ Plot)')
-    column_to_test = st.selectbox('Select column for normality test', state_data.columns)
-    qq_plot(state_data, column_to_test)
+# 2. Summary statistics
+st.header(f"Summary Statistics for {selected_state}")
+st.write(state_data.describe())
 
-    # Spearman Correlation
-    st.subheader('Spearman Correlation Test')
-    columns_to_correlate = st.multiselect('Select columns for correlation', state_data.columns)
-    if len(columns_to_correlate) > 1:
-        spearman_correlation(state_data, columns_to_correlate)
+# 3. Normality Test (QQ Plot)
+st.subheader("Normality Test (QQ Plot)")
 
-    # Plot MGNREGA demand for the state
-    st.subheader('MGNREGA Demand Over the Years')
-    plot_mgnrega_demand(df, state)
+def qq_plot(column):
+    fig, ax = plt.subplots()
+    stats.probplot(state_data[column], dist="norm", plot=ax)
+    plt.title(f"QQ Plot for {column}")
+    st.pyplot(fig)
 
-    # Production data over the years
-    st.subheader('Production Over the Years')
-    production_column = 'Production_(in_Tonnes)'
-    if production_column in state_data.columns:
-        st.line_chart(state_data[['year', production_column]].set_index('year'))
+# Select a column for normality testing
+numeric_columns = state_data.select_dtypes(include=['int64', 'float64']).columns
+selected_column = st.selectbox("Select a column for QQ plot", numeric_columns)
+qq_plot(selected_column)
 
-    # Rainfall data over the years
-    st.subheader('Rainfall Over the Years')
-    rainfall_column = 'Annual_rainfall'
-    if rainfall_column in state_data.columns:
-        st.line_chart(state_data[['year', rainfall_column]].set_index('year'))
+# 4. Spearman Correlation Test (Handle Non-Numeric Data and NaN)
+st.subheader("Spearman Correlation Matrix")
 
-    # Adjusted MSP (simple example of calculating it)
-    st.subheader('Adjusted Minimum Support Price (MSP)')
-    # Assuming there's a column in your data related to MSP
-    if 'MSP' in state_data.columns:
-        adjusted_msp = state_data['MSP'] * 1.05  # Example adjustment of 5%
-        st.write(f'Adjusted MSP for {state}:')
-        st.write(adjusted_msp)
+# Select only numeric columns for correlation
+numeric_data = state_data.select_dtypes(include=['float64', 'int64'])
 
-if __name__ == '__main__':
-    main()
+# Fill missing values with 0 or any appropriate value
+numeric_data = numeric_data.fillna(0)
+
+# Compute Spearman correlation
+if not numeric_data.empty:
+    spearman_corr = numeric_data.corr(method='spearman')
+    st.write(spearman_corr)
+else:
+    st.write("No numeric data available for correlation.")
+
+# 5. MGNREGA Lineplot - Demand over the years
+st.subheader(f"MGNREGA Demand Over the Years for {selected_state}")
+mgnrega_demand = state_data.groupby('year')['Employment_demanded'].sum().reset_index()
+
+line_chart = alt.Chart(mgnrega_demand).mark_line().encode(
+    x='year',
+    y='Employment_demanded'
+).properties(
+    width=600,
+    height=400
+)
+st.altair_chart(line_chart)
+
+# 6. Production of the state each year
+st.subheader(f"Production Over the Years for {selected_state}")
+production_data = state_data.groupby('year')['Production_(in_Tonnes)'].sum().reset_index()
+
+line_chart_production = alt.Chart(production_data).mark_line().encode(
+    x='year',
+    y='Production_(in_Tonnes)'
+).properties(
+    width=600,
+    height=400
+)
+st.altair_chart(line_chart_production)
+
+# 7. Rainfall of the state each year
+st.subheader(f"Rainfall Over the Years for {selected_state}")
+rainfall_data = state_data.groupby('year')['Annual_rainfall'].sum().reset_index()
+
+line_chart_rainfall = alt.Chart(rainfall_data).mark_line().encode(
+    x='year',
+    y='Annual_rainfall'
+).properties(
+    width=600,
+    height=400
+)
+st.altair_chart(line_chart_rainfall)
+
+# 8. Adjusted MSP over the years
+st.subheader(f"Adjusted MSP Over the Years for {selected_state}")
+msp_data = state_data.groupby('year')['MSP'].sum().reset_index()
+
+line_chart_msp = alt.Chart(msp_data).mark_line().encode(
+    x='year',
+    y='MSP'
+).properties(
+    width=600,
+    height=400
+)
+st.altair_chart(line_chart_msp)
