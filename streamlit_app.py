@@ -61,20 +61,23 @@ if not numeric_data.empty:
 else:
     st.write("No numeric data available for correlation.")
 
-# 5. MGNREGA Lineplot - Demand over the years
+# 5. Visualizing trends over the years for various metrics
+st.header(f"Yearly Analysis for {selected_state}")
+
+# MGNREGA Demand over the years
 st.subheader(f"MGNREGA Demand Over the Years for {selected_state}")
 mgnrega_demand = state_data.groupby('year')['Employment_demanded'].sum().reset_index()
 
-line_chart = alt.Chart(mgnrega_demand).mark_line().encode(
+line_chart_mgnrega = alt.Chart(mgnrega_demand).mark_line().encode(
     x='year',
     y='Employment_demanded'
 ).properties(
     width=600,
     height=400
 )
-st.altair_chart(line_chart)
+st.altair_chart(line_chart_mgnrega)
 
-# 6. Production of the state each year
+# Production of the state each year
 st.subheader(f"Production Over the Years for {selected_state}")
 production_data = state_data.groupby('year')['Production_(in_Tonnes)'].sum().reset_index()
 
@@ -87,7 +90,7 @@ line_chart_production = alt.Chart(production_data).mark_line().encode(
 )
 st.altair_chart(line_chart_production)
 
-# 7. Rainfall of the state each year
+# Rainfall of the state each year
 st.subheader(f"Rainfall Over the Years for {selected_state}")
 rainfall_data = state_data.groupby('year')['Annual_rainfall'].sum().reset_index()
 
@@ -100,7 +103,7 @@ line_chart_rainfall = alt.Chart(rainfall_data).mark_line().encode(
 )
 st.altair_chart(line_chart_rainfall)
 
-# 8. Adjusted MSP over the years
+# Adjusted MSP over the years
 st.subheader(f"Adjusted MSP Over the Years for {selected_state}")
 msp_data = state_data.groupby('year')['MSP'].sum().reset_index()
 
@@ -112,3 +115,29 @@ line_chart_msp = alt.Chart(msp_data).mark_line().encode(
     height=400
 )
 st.altair_chart(line_chart_msp)
+
+# 6. Multi-line chart: comparing all metrics over the years
+st.subheader(f"Comparison of Various Metrics Over the Years for {selected_state}")
+
+# Combine data for all metrics
+combined_data = state_data.groupby('Year').agg({
+    'Employment_demanded': 'sum',
+    'Production_(in_Tonnes)': 'sum',
+    'Annual_rainfall': 'sum',
+    'MSP': 'sum'
+}).reset_index()
+
+# Create a multi-line chart
+multi_line_chart = alt.Chart(combined_data).transform_fold(
+    ['Employment_demanded', 'Production_(in_Tonnes)', 'Annual_rainfall', 'MSP'],
+    as_=['Metric', 'Value']
+).mark_line().encode(
+    x='Year:O',
+    y='Value:Q',
+    color='Metric:N'
+).properties(
+    width=800,
+    height=400
+)
+
+st.altair_chart(multi_line_chart)
