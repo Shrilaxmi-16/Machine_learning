@@ -12,132 +12,71 @@ st.title("Agricultural and Employment Data Analysis")
 st.info('This App is for machine learning analysis')
 with st.expander('Data'):
   st.write('## Dataset')
-  data= pd.read_csv('https://raw.githubusercontent.com/Shrilaxmi-16/MLOps-shri/main/unique_states_crops.csv')
+  data= pd.read_csv('https://raw.githubusercontent.com/sumukhahe/ML_Project/main/data/dataset.csv')
   data
 
+# Sidebar filters
+st.sidebar.header("Filter Options")
+selected_state = st.sidebar.selectbox('Select State', data['State_x'].unique())
+selected_crop = st.sidebar.selectbox('Select Crop', data['Crop'].unique())
 
-# State selection from user input
-st.sidebar.header("Select State")
-selected_state = st.sidebar.selectbox("Select the state", data["State"].unique())
+# Filter data based on sidebar selections
+filtered_data = data[(data['State_x'] == selected_state) & (data['Crop'] == selected_crop)]
 
-# Filter data for the selected state
-state_data = data[data["State"] == selected_state]
+# Data Analysis Section
+st.header(f"Data Analysis for {selected_state} and Crop: {selected_crop}")
 
-# 1. Display state's all information
-st.header(f"State Data for {selected_state}")
-st.write(state_data)
+# Show filtered data
+st.write(filtered_data)
 
-# 2. Summary statistics
-st.header(f"Summary Statistics for {selected_state}")
-st.write(state_data.describe())
+# Visualization Section
+st.subheader("Visualizations")
 
-# 3. Normality Test (QQ Plot)
-st.subheader("Normality Test (QQ Plot)")
+# Line plot for employment data
+st.write("### Employment Over Time")
+fig, ax = plt.subplots()
+ax.plot(filtered_data['year'], filtered_data['Employment_demanded'], label="Employment Demanded")
+ax.plot(filtered_data['year'], filtered_data['Employment_offered'], label="Employment Offered")
+ax.plot(filtered_data['year'], filtered_data['Employment_Availed'], label="Employment Availed")
+ax.set_xlabel('Year')
+ax.set_ylabel('Number of People')
+ax.legend()
+st.pyplot(fig)
 
-def qq_plot(column):
-    fig, ax = plt.subplots()
-    stats.probplot(state_data[column], dist="norm", plot=ax)
-    plt.title(f"QQ Plot for {column}")
-    st.pyplot(fig)
+# Bar chart for crop production and area
+st.write("### Crop Production and Area")
+fig, ax = plt.subplots()
+ax.bar(filtered_data['year'], filtered_data['Production_(in_Tonnes)'], label='Production (Tonnes)', alpha=0.6)
+ax.bar(filtered_data['year'], filtered_data['Area_(in_Ha)'], label='Area (Ha)', alpha=0.6)
+ax.set_xlabel('Year')
+ax.set_ylabel('Value')
+ax.legend()
+st.pyplot(fig)
 
-# Select a column for normality testing
-numeric_columns = state_data.select_dtypes(include=['int64', 'float64']).columns
-selected_column = st.selectbox("Select a column for QQ plot", numeric_columns)
-qq_plot(selected_column)
+# Correlation heatmap
+st.write("### Correlation Heatmap")
+correlation_cols = ['Rural_Population', 'No_of_Registered', 'Employment_demanded', 'Employment_offered',
+                    'Employment_Availed', 'Area_(in_Ha)', 'Production_(in_Tonnes)', 'Yield_(kg/Ha)',
+                    'MSP', 'Annual_rainfall', 'WPI']
 
-# 4. Spearman Correlation Test (Handle Non-Numeric Data and NaN)
-st.subheader("Spearman Correlation Matrix")
+correlation_data = filtered_data[correlation_cols].corr()
+fig, ax = plt.subplots()
+sns.heatmap(correlation_data, annot=True, cmap='coolwarm', ax=ax)
+st.pyplot(fig)
 
-# Select only numeric columns for correlation
-numeric_data = state_data.select_dtypes(include=['float64', 'int64'])
+# Statistical Summary Section
+st.subheader("Statistical Analysis")
 
-# Fill missing values with 0 or any appropriate value
-numeric_data = numeric_data.fillna(0)
+st.write("### Summary Statistics")
+st.write(filtered_data.describe())
 
-# Compute Spearman correlation
-if not numeric_data.empty:
-    spearman_corr = numeric_data.corr(method='spearman')
-    st.write(spearman_corr)
-else:
-    st.write("No numeric data available for correlation.")
+st.write("### Yield vs Rainfall Scatter Plot")
+fig, ax = plt.subplots()
+ax.scatter(filtered_data['Annual_rainfall'], filtered_data['Yield_(kg/Ha)'])
+ax.set_xlabel('Annual Rainfall')
+ax.set_ylabel('Yield (kg/Ha)')
+st.pyplot(fig)
 
-# 5. Visualizing trends over the years for various metrics
-st.header(f"Yearly Analysis for {selected_state}")
-
-# MGNREGA Demand over the years
-st.subheader(f"MGNREGA Demand Over the Years for {selected_state}")
-mgnrega_demand = state_data.groupby('year')['Employment_demanded'].sum().reset_index()
-
-line_chart_mgnrega = alt.Chart(mgnrega_demand).mark_line().encode(
-    x='year',
-    y='Employment_demanded'
-).properties(
-    width=600,
-    height=400
-)
-st.altair_chart(line_chart_mgnrega)
-
-# Production of the state each year
-st.subheader(f"Production Over the Years for {selected_state}")
-production_data = state_data.groupby('year')['Production_(in_Tonnes)'].sum().reset_index()
-
-line_chart_production = alt.Chart(production_data).mark_line().encode(
-    x='year',
-    y='Production_(in_Tonnes)'
-).properties(
-    width=600,
-    height=400
-)
-st.altair_chart(line_chart_production)
-
-# Rainfall of the state each year
-st.subheader(f"Rainfall Over the Years for {selected_state}")
-rainfall_data = state_data.groupby('year')['Annual_rainfall'].sum().reset_index()
-
-line_chart_rainfall = alt.Chart(rainfall_data).mark_line().encode(
-    x='year',
-    y='Annual_rainfall'
-).properties(
-    width=600,
-    height=400
-)
-st.altair_chart(line_chart_rainfall)
-
-# Adjusted MSP over the years
-st.subheader(f"Adjusted MSP Over the Years for {selected_state}")
-msp_data = state_data.groupby('year')['MSP'].sum().reset_index()
-
-line_chart_msp = alt.Chart(msp_data).mark_line().encode(
-    x='year',
-    y='MSP'
-).properties(
-    width=600,
-    height=400
-)
-st.altair_chart(line_chart_msp)
-
-# 6. Multi-line chart: comparing all metrics over the years
-st.subheader(f"Comparison of Various Metrics Over the Years for {selected_state}")
-
-# Combine data for all metrics
-combined_data = state_data.groupby('year').agg({
-    'Employment_demanded': 'sum',
-    'Production_(in_Tonnes)': 'sum',
-    'Annual_rainfall': 'sum',
-    'MSP': 'sum'
-}).reset_index()
-
-# Create a multi-line chart
-multi_line_chart = alt.Chart(combined_data).transform_fold(
-    ['Employment_demanded', 'Production_(in_Tonnes)', 'Annual_rainfall', 'MSP'],
-    as_=['Metric', 'Value']
-).mark_line().encode(
-    x='year:O',
-    y='Value:Q',
-    color='Metric:N'
-).properties(
-    width=800,
-    height=400
-)
-
-st.altair_chart(multi_line_chart)
+# Conclusion Section
+st.write("### Conclusion")
+st.write("This analysis provides insights into employment and agricultural data trends over time for the selected state and crop.")
