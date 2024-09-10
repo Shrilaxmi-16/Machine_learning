@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 st.title('🤖 Machine Learning App for employement demand')
@@ -12,37 +14,77 @@ with st.expander('Data'):
   data= pd.read_csv('https://raw.githubusercontent.com/sumukhahe/ML_Project/main/data/dataset.csv')
   data
 st.write('## Data Visualization')
-st.sidebar.title('Visualization Options')
-plot_type = st.sidebar.selectbox("Choose Plot Type", ["Line Plot", "Bar Plot", "Histogram"])
+st.title("Agricultural and Employment Data Analysis")
 
-# Select columns for x and y axis
-x_column = st.sidebar.selectbox("Select X-axis Column", data.columns)
-y_column = st.sidebar.selectbox("Select Y-axis Column", data.columns)
+# Display the raw data
+if st.checkbox("Show Raw Data"):
+    st.write(data)
 
-# Plot based on selection
-if plot_type == "Line Plot":
-    st.subheader(f"Line Plot of {y_column} vs {x_column}")
-    line_chart = alt.Chart(data).mark_line().encode(
-        x=x_column,
-        y=y_column
-    )
-    st.altair_chart(line_chart, use_container_width=True)
+# Sidebar filters
+st.sidebar.header("Filter Options")
+selected_state = st.sidebar.selectbox('Select State', data['State_x'].unique())
+selected_crop = st.sidebar.selectbox('Select Crop', data['Crop'].unique())
 
-elif plot_type == "Bar Plot":
-    st.subheader(f"Bar Plot of {y_column} vs {x_column}")
-    bar_chart = alt.Chart(data).mark_bar().encode(
-        x=x_column,
-        y=y_column
-    )
-    st.altair_chart(bar_chart, use_container_width=True)
+# Filter data based on sidebar selections
+filtered_data = data[(data['State_x'] == selected_state) & (data['Crop'] == selected_crop)]
 
-elif plot_type == "Histogram":
-    st.subheader(f"Histogram of {x_column}")
-    hist_chart = alt.Chart(data).mark_bar().encode(
-        alt.X(x_column, bin=True),
-        y='count()'
-    )
-    st.altair_chart(hist_chart, use_container_width=True) 
+# Data Analysis Section
+st.header(f"Data Analysis for {selected_state} and Crop: {selected_crop}")
+
+# Show filtered data
+st.write(filtered_data)
+
+# Visualization Section
+st.subheader("Visualizations")
+
+# Line plot for employment data
+st.write("### Employment Over Time")
+fig, ax = plt.subplots()
+ax.plot(filtered_data['year'], filtered_data['Employment_demanded'], label="Employment Demanded")
+ax.plot(filtered_data['year'], filtered_data['Employment_offered'], label="Employment Offered")
+ax.plot(filtered_data['year'], filtered_data['Employment_Availed'], label="Employment Availed")
+ax.set_xlabel('Year')
+ax.set_ylabel('Number of People')
+ax.legend()
+st.pyplot(fig)
+
+# Bar chart for crop production and area
+st.write("### Crop Production and Area")
+fig, ax = plt.subplots()
+ax.bar(filtered_data['year'], filtered_data['Production_(in_Tonnes)'], label='Production (Tonnes)', alpha=0.6)
+ax.bar(filtered_data['year'], filtered_data['Area_(in_Ha)'], label='Area (Ha)', alpha=0.6)
+ax.set_xlabel('Year')
+ax.set_ylabel('Value')
+ax.legend()
+st.pyplot(fig)
+
+# Correlation heatmap
+st.write("### Correlation Heatmap")
+correlation_cols = ['Rural_Population', 'No_of_Registered', 'Employment_demanded', 'Employment_offered',
+                    'Employment_Availed', 'Area_(in_Ha)', 'Production_(in_Tonnes)', 'Yield_(kg/Ha)',
+                    'MSP', 'Annual_rainfall', 'WPI']
+
+correlation_data = filtered_data[correlation_cols].corr()
+fig, ax = plt.subplots()
+sns.heatmap(correlation_data, annot=True, cmap='coolwarm', ax=ax)
+st.pyplot(fig)
+
+# Statistical Summary Section
+st.subheader("Statistical Analysis")
+
+st.write("### Summary Statistics")
+st.write(filtered_data.describe())
+
+st.write("### Yield vs Rainfall Scatter Plot")
+fig, ax = plt.subplots()
+ax.scatter(filtered_data['Annual_rainfall'], filtered_data['Yield_(kg/Ha)'])
+ax.set_xlabel('Annual Rainfall')
+ax.set_ylabel('Yield (kg/Ha)')
+st.pyplot(fig)
+
+# Conclusion Section
+st.write("### Conclusion")
+st.write("This analysis provides insights into employment and agricultural data trends over time for the selected state and crop.") 
 
 # Sidebar for options
 st.sidebar.title("Visualization Options")
