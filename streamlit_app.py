@@ -19,7 +19,7 @@ with st.expander('Data'):
 st.sidebar.header("Filter Options")
 selected_state = st.sidebar.selectbox('Select State', data['State_x'].unique())
 selected_crop = st.sidebar.selectbox('Select Crop', data['Crop'].unique())
-selected_year = st.sidebar.multiselect('Select Year(s)', data['year'].unique(), default=data['year'].unique())
+selected_year = st.sidebar.selectbox('Select Year(s)', data['year'].unique(), default=data['year'].unique())
 
 # Filter data based on sidebar selections
 filtered_data = data[(data['State_x'] == selected_state) & 
@@ -104,19 +104,37 @@ pairplot_cols = ['Employment_demanded', 'Production_(in_Tonnes)', 'Yield_(kg/Ha)
 sns.pairplot(filtered_data[pairplot_cols])
 st.pyplot()
 
-# 5. Comparative Analysis of States
-st.subheader("State and Crop Comparison")
+# 5. Relationship Between Agricultural Productivity and Rural Employment Demand
+st.subheader("Relationship Between Agricultural Productivity and Rural Employment Demand")
 
-metric = st.selectbox("Select a metric to compare across states", ['Production_(in_Tonnes)', 'Yield_(kg/Ha)', 'MSP', 'Employment_demanded'])
-comparison_data = data.groupby(['State_x', 'year'])[[metric]].mean().reset_index()
-
-st.write(f"### Comparison of {metric} across States Over Time")
-fig, ax = plt.subplots(figsize=(10,6))
-sns.lineplot(x='year', y=metric, hue='State_x', data=comparison_data, ax=ax)
-ax.set_xlabel('Year')
-ax.set_ylabel(metric)
-ax.set_title(f"{metric} Comparison Across States")
+# Scatter plot with regression line for Crop Production vs Employment Demanded
+st.write("### Crop Production vs Employment Demanded")
+fig, ax = plt.subplots()
+sns.regplot(x='Production_(in_Tonnes)', y='Employment_demanded', data=filtered_data, ax=ax, scatter_kws={'color': 'blue'}, line_kws={'color': 'red'})
+ax.set_xlabel('Production (in Tonnes)')
+ax.set_ylabel('Employment Demanded')
 st.pyplot(fig)
+
+# Scatter plot with regression line for Rainfall vs Employment Demanded
+st.write("### Annual Rainfall vs Employment Demanded")
+fig, ax = plt.subplots()
+sns.regplot(x='Annual_rainfall', y='Employment_demanded', data=filtered_data, ax=ax, scatter_kws={'color': 'green'}, line_kws={'color': 'red'})
+ax.set_xlabel('Annual Rainfall (mm)')
+ax.set_ylabel('Employment Demanded')
+st.pyplot(fig)
+
+# Scatter plot with regression line for Yield vs Employment Demanded
+st.write("### Crop Yield vs Employment Demanded")
+fig, ax = plt.subplots()
+sns.regplot(x='Yield_(kg/Ha)', y='Employment_demanded', data=filtered_data, ax=ax, scatter_kws={'color': 'purple'}, line_kws={'color': 'red'})
+ax.set_xlabel('Yield (kg/Ha)')
+ax.set_ylabel('Employment Demanded')
+st.pyplot(fig)
+
+# Display correlation between Employment Demanded and key agricultural metrics
+st.write("### Correlation Between Employment Demanded and Agricultural Metrics")
+corr_employment_production = filtered_data[['Employment_demanded', 'Production_(in_Tonnes)', 'Annual_rainfall', 'Yield_(kg/Ha)']].corr()
+st.write(corr_employment_production)
 
 # 6. Top N Analysis
 st.subheader("Top N Analysis")
@@ -157,4 +175,4 @@ st.write(f"Predicted Yield (kg/Ha): {predicted_yield:.2f}")
 
 # Conclusion Section
 st.write("### Conclusion")
-st.write("This comprehensive analysis provides detailed insights into the trends, relationships, and predictive modeling for agricultural and employment data.")
+st.write("This detailed analysis explores the relationship between agricultural productivity and rural employment demand under MGNREGA.")
