@@ -132,7 +132,7 @@ multi_line_chart = alt.Chart(combined_data).transform_fold(
     ['Employment_demanded', 'Production_(in_Tonnes)', 'Annual_rainfall', 'MSP'],
     as_=['Metric', 'Value']
 ).mark_line().encode(
-    x='Year:O',
+    x='year:O',
     y='Value:Q',
     color='Metric:N'
 ).properties(
