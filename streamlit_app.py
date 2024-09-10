@@ -120,7 +120,7 @@ st.altair_chart(line_chart_msp)
 st.subheader(f"Comparison of Various Metrics Over the Years for {selected_state}")
 
 # Combine data for all metrics
-combined_data = state_data.groupby('Year').agg({
+combined_data = state_data.groupby('year').agg({
     'Employment_demanded': 'sum',
     'Production_(in_Tonnes)': 'sum',
     'Annual_rainfall': 'sum',
