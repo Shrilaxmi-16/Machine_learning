@@ -12,30 +12,28 @@ st.title("Agricultural and Employment Data Analysis")
 st.info('This App is for machine learning analysis')
 with st.expander('Data'):
   st.write('## Dataset')
-  data= pd.read_csv('https://raw.githubusercontent.com/Shrilaxmi-16/MLOps-shri/main/unique_states_crops.csv')
-  data
+  df= pd.read_csv('https://raw.githubusercontent.com/Shrilaxmi-16/MLOps-shri/main/unique_states_crops.csv')
+  df
 
 # Function to plot QQ plot
 def qq_plot(data, column):
-    stats.probplot(data[column], dist="norm", plot=plt)
+    stats.probplot(df[column], dist="norm", plot=plt)
     st.pyplot()
 
 # Function to calculate Spearman correlation
-def spearman_correlation(data, columns):
-    correlation_matrix = data[columns].corr(method='spearman')
+def spearman_correlation(df, columns):
+    correlation_matrix = df[columns].corr(method='spearman')
     st.write(correlation_matrix)
 
 # Function to plot MGNREGA Demand
-def plot_mgnrega_demand(data, state):
-    state_data = data[data['State'] == state]
-    st.line_chart(state_data[['Year', 'MGNREGA_Demand']].set_index('Year'))
+def plot_mgnrega_demand(df, state):
+    state_data = df[df['State'] == state]
+    st.line_chart(state_data[['year', 'Employment_demanded']].set_index('year'))
 
 # Main Streamlit app
 def main():
     st.title('Crop Data Analysis by State')
 
-    # Load data
-    df = load_data()
 
     # Select state from the dropdown
     state = st.selectbox('Select State', df['State'].unique())
@@ -66,15 +64,15 @@ def main():
 
     # Production data over the years
     st.subheader('Production Over the Years')
-    production_column = 'Production'
+    production_column = 'Production_(in_Tonnes)'
     if production_column in state_data.columns:
-        st.line_chart(state_data[['Year', production_column]].set_index('Year'))
+        st.line_chart(state_data[['year', production_column]].set_index('year'))
 
     # Rainfall data over the years
     st.subheader('Rainfall Over the Years')
-    rainfall_column = 'Rainfall'
+    rainfall_column = 'Annual_rainfall'
     if rainfall_column in state_data.columns:
-        st.line_chart(state_data[['Year', rainfall_column]].set_index('Year'))
+        st.line_chart(state_data[['year', rainfall_column]].set_index('year'))
 
     # Adjusted MSP (simple example of calculating it)
     st.subheader('Adjusted Minimum Support Price (MSP)')
