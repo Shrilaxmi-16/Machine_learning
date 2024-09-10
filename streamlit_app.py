@@ -75,7 +75,7 @@ st.altair_chart(line_chart)
 
 # 6. Production of the state each year
 st.subheader(f"Production Over the Years for {selected_state}")
-production_data = state_data.groupby('Year')['Production'].sum().reset_index()
+production_data = state_data.groupby('year')['Production_(in_Tonnes)'].sum().reset_index()
 
 line_chart_production = alt.Chart(production_data).mark_line().encode(
     x='year',
