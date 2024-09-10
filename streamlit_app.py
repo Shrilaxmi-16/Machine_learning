@@ -4,21 +4,16 @@ import altair as alt
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.linear_model import LinearRegression
 
 
-st.title('🤖 Machine Learning App')
+st.title("Agricultural and Employment Data Analysis")
 
 st.info('This App is for machine learning analysis')
 with st.expander('Data'):
   st.write('## Dataset')
   data= pd.read_csv('https://raw.githubusercontent.com/sumukhahe/ML_Project/main/data/dataset.csv')
   data
-st.write('## Data Visualization')
-st.title("Agricultural and Employment Data Analysis")
-
-# Display the raw data
-if st.checkbox("Show Raw Data"):
-    st.write(data)
 
 # Sidebar filters
 st.sidebar.header("Filter Options")
@@ -34,159 +29,104 @@ st.header(f"Data Analysis for {selected_state} and Crop: {selected_crop}")
 # Show filtered data
 st.write(filtered_data)
 
-# Visualizations Section
-st.subheader("Visualizations")
+# 1. Trend Analysis Section
+st.subheader("Trend Analysis")
 
-# 1. Employment Efficiency
-st.write("### Employment Efficiency (Availed vs Offered)")
-filtered_data['Efficiency'] = (filtered_data['Employment_Availed'] / filtered_data['Employment_offered']) * 100
+st.write("### Employment Trends Over Time")
 fig, ax = plt.subplots()
-ax.plot(filtered_data['year'], filtered_data['Efficiency'], label='Employment Efficiency (%)')
+ax.plot(filtered_data['year'], filtered_data['Employment_demanded'], label="Employment Demanded")
+ax.plot(filtered_data['year'], filtered_data['Employment_offered'], label="Employment Offered")
+ax.plot(filtered_data['year'], filtered_data['Employment_Availed'], label="Employment Availed")
 ax.set_xlabel('Year')
-ax.set_ylabel('Efficiency (%)')
+ax.set_ylabel('Number of People')
 ax.legend()
 st.pyplot(fig)
 
-# 2. Yield vs MSP
-st.write("### Yield vs Minimum Support Price (MSP)")
+st.write("### Crop Production Trends Over Time")
 fig, ax = plt.subplots()
-ax.scatter(filtered_data['Yield_(kg/Ha)'], filtered_data['MSP'])
-ax.set_xlabel('Yield (kg/Ha)')
-ax.set_ylabel('MSP (₹)')
-st.pyplot(fig)
-
-# 3. Rainfall vs Crop Production
-st.write("### Rainfall vs Crop Production")
-fig, ax = plt.subplots()
-sns.regplot(x='Annual_rainfall', y='Production_(in_Tonnes)', data=filtered_data, ax=ax)
-ax.set_xlabel('Annual Rainfall (mm)')
+ax.plot(filtered_data['year'], filtered_data['Production_(in_Tonnes)'], label="Production (Tonnes)")
+ax.set_xlabel('Year')
 ax.set_ylabel('Production (Tonnes)')
-st.pyplot(fig)
-
-# 4. Time Series of Key Variables
-st.write("### Time Series Analysis of Key Variables")
-fig, ax = plt.subplots()
-ax.plot(filtered_data['year'], filtered_data['Rural_Population'], label='Rural Population', color='blue')
-ax.plot(filtered_data['year'], filtered_data['Employment_demanded'], label='Employment Demanded', color='green')
-ax.plot(filtered_data['year'], filtered_data['WPI'], label='Wholesale Price Index (WPI)', color='red')
-ax.set_xlabel('Year')
-ax.set_ylabel('Values')
 ax.legend()
 st.pyplot(fig)
 
-# 5. Top States by Crop Production
-st.write("### Top States by Crop Production")
-top_producing_states = data.groupby('State_x')['Production_(in_Tonnes)'].sum().nlargest(10).reset_index()
+st.write("### Rainfall Trends Over Time")
 fig, ax = plt.subplots()
-sns.barplot(x='Production_(in_Tonnes)', y='State_x', data=top_producing_states, ax=ax)
-ax.set_xlabel('Production (Tonnes)')
-ax.set_ylabel('State')
+ax.plot(filtered_data['year'], filtered_data['Annual_rainfall'], label="Annual Rainfall")
+ax.set_xlabel('Year')
+ax.set_ylabel('Rainfall (mm)')
+ax.legend()
 st.pyplot(fig)
 
-# Statistical Summary Section
-st.subheader("Statistical Analysis")
+# 2. Comparative Analysis Section
+st.subheader("Comparative Analysis Across States")
 
-# Summary statistics
-st.write("### Summary Statistics")
-st.write(filtered_data.describe())
+metric = st.selectbox("Select a metric to compare across states", ['Production_(in_Tonnes)', 'Yield_(kg/Ha)', 'MSP', 'Employment_demanded'])
+comp_data = data.groupby('State_x')[[metric]].mean().reset_index()
+
+st.write(f"### Comparison of {metric} across states")
+fig, ax = plt.subplots(figsize=(10,6))
+sns.barplot(x='State_x', y=metric, data=comp_data, ax=ax)
+ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
+st.pyplot(fig)
+
+# 3. Top N Analysis Section
+st.subheader("Top N States or Crops")
+
+top_n = st.slider("Select Top N", 1, 10, 5)
+top_metric = st.selectbox("Select a metric for ranking", ['Production_(in_Tonnes)', 'Yield_(kg/Ha)', 'Employment_demanded'])
+
+st.write(f"### Top {top_n} States Based on {top_metric}")
+top_states = data.groupby('State_x')[[top_metric]].mean().nlargest(top_n, top_metric).reset_index()
+
+fig, ax = plt.subplots()
+sns.barplot(x='State_x', y=top_metric, data=top_states, ax=ax)
+ax.set_xlabel('State')
+ax.set_ylabel(top_metric)
+st.pyplot(fig)
+
+# 4. Advanced Correlation Analysis Section
+st.subheader("Advanced Correlation Analysis")
+
+# Pair Plot for selected metrics
+pairplot_cols = ['Rural_Population', 'Employment_demanded', 'Production_(in_Tonnes)', 'Yield_(kg/Ha)', 'Annual_rainfall']
+st.write("### Pairplot for Key Metrics")
+sns.pairplot(data[pairplot_cols])
+st.pyplot()
 
 # Correlation heatmap
-st.write("### Correlation Heatmap")
+st.write("### Correlation Heatmap of the Full Dataset")
 correlation_cols = ['Rural_Population', 'No_of_Registered', 'Employment_demanded', 'Employment_offered',
                     'Employment_Availed', 'Area_(in_Ha)', 'Production_(in_Tonnes)', 'Yield_(kg/Ha)',
                     'MSP', 'Annual_rainfall', 'WPI']
-
-correlation_data = filtered_data[correlation_cols].corr()
-fig, ax = plt.subplots()
+correlation_data = data[correlation_cols].corr()
+fig, ax = plt.subplots(figsize=(10,8))
 sns.heatmap(correlation_data, annot=True, cmap='coolwarm', ax=ax)
 st.pyplot(fig)
 
+# 5. Regression Model to Predict Crop Yield
+st.subheader("Prediction Model for Crop Yield")
+
+# Features for prediction
+features = ['Area_(in_Ha)', 'Production_(in_Tonnes)', 'Annual_rainfall', 'WPI']
+X = data[features]
+y = data['Yield_(kg/Ha)']
+
+# Train Linear Regression model
+model = LinearRegression()
+model.fit(X, y)
+
+# Prediction Section
+st.write("### Predict Yield Based on Input Features")
+
+input_area = st.number_input("Enter Area (in Ha)", min_value=0.0, value=1000.0)
+input_production = st.number_input("Enter Production (in Tonnes)", min_value=0.0, value=500.0)
+input_rainfall = st.number_input("Enter Annual Rainfall (in mm)", min_value=0.0, value=10.0)
+input_wpi = st.number_input("Enter WPI", min_value=0.0, value=100.0)
+
+predicted_yield = model.predict([[input_area, input_production, input_rainfall, input_wpi]])[0]
+st.write(f"Predicted Yield (kg/Ha): {predicted_yield:.2f}")
+
 # Conclusion Section
 st.write("### Conclusion")
-st.write("This enhanced analysis provides deeper insights into employment, crop production, and agricultural trends over time, focusing on factors like efficiency, rainfall impact, and more.")
-
-# Sidebar for options
-st.sidebar.title("Visualization Options")
-
-# 1. Descriptive Statistics
-st.sidebar.subheader("Descriptive Statistics")
-if st.sidebar.checkbox("Show Descriptive Statistics"):
-    st.subheader("Descriptive Statistics")
-    st.write(data.describe())
-
-# 2. Pandas Profiling Report
-st.sidebar.subheader("Pandas Profiling Report")
-if st.sidebar.checkbox("Generate Pandas Profiling Report"):
-    st.subheader("Exploratory Data Analysis Report")
-    profile = ProfileReport(data, minimal=True)
-    st_profile_report(profile)
-
-# 3. Histogram with Matplotlib
-st.sidebar.subheader("Matplotlib Histogram")
-hist_column = st.sidebar.selectbox("Select Column for Histogram", data.select_dtypes(include=['int64', 'float64']).columns)
-if st.sidebar.checkbox(f"Show Histogram for {hist_column}"):
-    st.subheader(f"Histogram of {hist_column}")
-    fig, ax = plt.subplots()
-    ax.hist(data[hist_column], bins=30, edgecolor='black')
-    plt.title(f'Histogram of {hist_column}')
-    st.pyplot(fig)
-
-# 4. Scatter Plot with Matplotlib
-st.sidebar.subheader("Matplotlib Scatter Plot")
-scatter_x_column = st.sidebar.selectbox("Select X-axis for Scatter Plot", data.select_dtypes(include=['int64', 'float64']).columns)
-scatter_y_column = st.sidebar.selectbox("Select Y-axis for Scatter Plot", data.select_dtypes(include=['int64', 'float64']).columns)
-if st.sidebar.checkbox(f"Show Scatter Plot of {scatter_x_column} vs {scatter_y_column}"):
-    st.subheader(f"Scatter Plot of {scatter_y_column} vs {scatter_x_column}")
-    fig, ax = plt.subplots()
-    ax.scatter(data[scatter_x_column], data[scatter_y_column], c='blue', alpha=0.5)
-    ax.set_xlabel(scatter_x_column)
-    ax.set_ylabel(scatter_y_column)
-    plt.title(f'Scatter Plot of {scatter_x_column} vs {scatter_y_column}')
-    st.pyplot(fig)
-
-# 5. Bar Plot using Altair
-st.sidebar.subheader("Altair Bar Plot")
-bar_column = st.sidebar.selectbox("Select Categorical Column for Bar Plot", data.select_dtypes(include=['object']).columns)
-if st.sidebar.checkbox(f"Show Bar Plot for {bar_column}"):
-    st.subheader(f"Bar Plot for {bar_column}")
-    bar_data = data[bar_column].value_counts().reset_index()
-    bar_chart = alt.Chart(bar_data).mark_bar().encode(
-        x='index',
-        y=bar_column
-    ).properties(
-        width=600,
-        height=400
-    )
-    st.altair_chart(bar_chart)
-
-# 6. Line Plot using Altair
-st.sidebar.subheader("Altair Line Plot")
-line_x_column = st.sidebar.selectbox("Select X-axis for Line Plot", data.select_dtypes(include=['int64', 'float64']).columns)
-line_y_column = st.sidebar.selectbox("Select Y-axis for Line Plot", data.select_dtypes(include=['int64', 'float64']).columns)
-if st.sidebar.checkbox(f"Show Line Plot of {line_x_column} vs {line_y_column}"):
-    st.subheader(f"Line Plot of {line_x_column} vs {line_y_column}")
-    line_chart = alt.Chart(data).mark_line().encode(
-        x=line_x_column,
-        y=line_y_column
-    ).properties(
-        width=600,
-        height=400
-    )
-    st.altair_chart(line_chart)
-
-# 7. Box Plot using Altair
-st.sidebar.subheader("Altair Box Plot")
-box_x_column = st.sidebar.selectbox("Select X-axis for Box Plot", data.columns)
-box_y_column = st.sidebar.selectbox("Select Y-axis for Box Plot", data.select_dtypes(include=['int64', 'float64']).columns)
-if st.sidebar.checkbox(f"Show Box Plot of {box_y_column} grouped by {box_x_column}"):
-    st.subheader(f"Box Plot of {box_y_column} grouped by {box_x_column}")
-    box_plot = alt.Chart(data).mark_boxplot().encode(
-        x=box_x_column,
-        y=box_y_column
-    ).properties(
-        width=600,
-        height=400
-    )
-    st.altair_chart(box_plot)
-  
- 
+st.write("This extended analysis provides more insights into the trends, comparisons, and relationships in the agricultural and employment data.")
