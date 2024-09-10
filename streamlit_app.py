@@ -34,29 +34,61 @@ st.header(f"Data Analysis for {selected_state} and Crop: {selected_crop}")
 # Show filtered data
 st.write(filtered_data)
 
-# Visualization Section
+# Visualizations Section
 st.subheader("Visualizations")
 
-# Line plot for employment data
-st.write("### Employment Over Time")
+# 1. Employment Efficiency
+st.write("### Employment Efficiency (Availed vs Offered)")
+filtered_data['Efficiency'] = (filtered_data['Employment_Availed'] / filtered_data['Employment_offered']) * 100
 fig, ax = plt.subplots()
-ax.plot(filtered_data['year'], filtered_data['Employment_demanded'], label="Employment Demanded")
-ax.plot(filtered_data['year'], filtered_data['Employment_offered'], label="Employment Offered")
-ax.plot(filtered_data['year'], filtered_data['Employment_Availed'], label="Employment Availed")
+ax.plot(filtered_data['year'], filtered_data['Efficiency'], label='Employment Efficiency (%)')
 ax.set_xlabel('Year')
-ax.set_ylabel('Number of People')
+ax.set_ylabel('Efficiency (%)')
 ax.legend()
 st.pyplot(fig)
 
-# Bar chart for crop production and area
-st.write("### Crop Production and Area")
+# 2. Yield vs MSP
+st.write("### Yield vs Minimum Support Price (MSP)")
 fig, ax = plt.subplots()
-ax.bar(filtered_data['year'], filtered_data['Production_(in_Tonnes)'], label='Production (Tonnes)', alpha=0.6)
-ax.bar(filtered_data['year'], filtered_data['Area_(in_Ha)'], label='Area (Ha)', alpha=0.6)
+ax.scatter(filtered_data['Yield_(kg/Ha)'], filtered_data['MSP'])
+ax.set_xlabel('Yield (kg/Ha)')
+ax.set_ylabel('MSP (₹)')
+st.pyplot(fig)
+
+# 3. Rainfall vs Crop Production
+st.write("### Rainfall vs Crop Production")
+fig, ax = plt.subplots()
+sns.regplot(x='Annual_rainfall', y='Production_(in_Tonnes)', data=filtered_data, ax=ax)
+ax.set_xlabel('Annual Rainfall (mm)')
+ax.set_ylabel('Production (Tonnes)')
+st.pyplot(fig)
+
+# 4. Time Series of Key Variables
+st.write("### Time Series Analysis of Key Variables")
+fig, ax = plt.subplots()
+ax.plot(filtered_data['year'], filtered_data['Rural_Population'], label='Rural Population', color='blue')
+ax.plot(filtered_data['year'], filtered_data['Employment_demanded'], label='Employment Demanded', color='green')
+ax.plot(filtered_data['year'], filtered_data['WPI'], label='Wholesale Price Index (WPI)', color='red')
 ax.set_xlabel('Year')
-ax.set_ylabel('Value')
+ax.set_ylabel('Values')
 ax.legend()
 st.pyplot(fig)
+
+# 5. Top States by Crop Production
+st.write("### Top States by Crop Production")
+top_producing_states = data.groupby('State_x')['Production_(in_Tonnes)'].sum().nlargest(10).reset_index()
+fig, ax = plt.subplots()
+sns.barplot(x='Production_(in_Tonnes)', y='State_x', data=top_producing_states, ax=ax)
+ax.set_xlabel('Production (Tonnes)')
+ax.set_ylabel('State')
+st.pyplot(fig)
+
+# Statistical Summary Section
+st.subheader("Statistical Analysis")
+
+# Summary statistics
+st.write("### Summary Statistics")
+st.write(filtered_data.describe())
 
 # Correlation heatmap
 st.write("### Correlation Heatmap")
@@ -69,22 +101,9 @@ fig, ax = plt.subplots()
 sns.heatmap(correlation_data, annot=True, cmap='coolwarm', ax=ax)
 st.pyplot(fig)
 
-# Statistical Summary Section
-st.subheader("Statistical Analysis")
-
-st.write("### Summary Statistics")
-st.write(filtered_data.describe())
-
-st.write("### Yield vs Rainfall Scatter Plot")
-fig, ax = plt.subplots()
-ax.scatter(filtered_data['Annual_rainfall'], filtered_data['Yield_(kg/Ha)'])
-ax.set_xlabel('Annual Rainfall')
-ax.set_ylabel('Yield (kg/Ha)')
-st.pyplot(fig)
-
 # Conclusion Section
 st.write("### Conclusion")
-st.write("This analysis provides insights into employment and agricultural data trends over time for the selected state and crop.") 
+st.write("This enhanced analysis provides deeper insights into employment, crop production, and agricultural trends over time, focusing on factors like efficiency, rainfall impact, and more.")
 
 # Sidebar for options
 st.sidebar.title("Visualization Options")
