@@ -62,11 +62,11 @@ else:
 
 # 5. MGNREGA Lineplot - Demand over the years
 st.subheader(f"MGNREGA Demand Over the Years for {selected_state}")
-mgnrega_demand = state_data.groupby('year')['Employement_demanded'].sum().reset_index()
+mgnrega_demand = state_data.groupby('year')['Employment_demanded'].sum().reset_index()
 
 line_chart = alt.Chart(mgnrega_demand).mark_line().encode(
     x='year',
-    y='Employement_demanded'
+    y='Employment_demanded'
 ).properties(
     width=600,
     height=400
