@@ -6,8 +6,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
 import scipy.stats as stats
-from pandas_profiling import ProfileReport
-from streamlit_pandas_profiling import st_profile_report
 
 st.title("Agricultural and Employment Data Analysis")
 
@@ -28,14 +26,9 @@ state_data = data[data["State"] == selected_state]
 st.header(f"State Data for {selected_state}")
 st.write(state_data)
 
-# 2. Summary statistics and Pandas profiling
+# 2. Summary statistics
 st.header(f"Summary Statistics for {selected_state}")
 st.write(state_data.describe())
-
-# Pandas profiling report
-st.subheader(f"Pandas Profiling Report for {selected_state}")
-profile = ProfileReport(state_data, minimal=True)
-st_profile_report(profile)
 
 # 3. Normality Test (QQ Plot)
 st.subheader("Normality Test (QQ Plot)")
