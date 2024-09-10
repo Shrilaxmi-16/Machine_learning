@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-st.title('🤖 Machine Learning App for employement demand')
+st.title('🤖 Machine Learning App')
 
 st.info('This App is for machine learning analysis')
 with st.expander('Data'):
