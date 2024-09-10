@@ -17,10 +17,10 @@ with st.expander('Data'):
 
 # State selection from user input
 st.sidebar.header("Select State")
-selected_state = st.sidebar.selectbox("Select the state", data["State_x"].unique())
+selected_state = st.sidebar.selectbox("Select the state", data["State"].unique())
 
 # Filter data for the selected state
-state_data = data[data["State_x"] == selected_state]
+state_data = data[data["State"] == selected_state]
 
 # 1. Display state's all information
 st.header(f"State Data for {selected_state}")
@@ -44,10 +44,21 @@ numeric_columns = state_data.select_dtypes(include=['int64', 'float64']).columns
 selected_column = st.selectbox("Select a column for QQ plot", numeric_columns)
 qq_plot(selected_column)
 
-# 4. Spearman Correlation Test
+# 4. Spearman Correlation Test (Handle Non-Numeric Data and NaN)
 st.subheader("Spearman Correlation Matrix")
-spearman_corr = state_data.corr(method='spearman')
-st.write(spearman_corr)
+
+# Select only numeric columns for correlation
+numeric_data = state_data.select_dtypes(include=['float64', 'int64'])
+
+# Fill missing values with 0 or any appropriate value
+numeric_data = numeric_data.fillna(0)
+
+# Compute Spearman correlation
+if not numeric_data.empty:
+    spearman_corr = numeric_data.corr(method='spearman')
+    st.write(spearman_corr)
+else:
+    st.write("No numeric data available for correlation.")
 
 # 5. MGNREGA Lineplot - Demand over the years
 st.subheader(f"MGNREGA Demand Over the Years for {selected_state}")
