@@ -47,110 +47,55 @@ fig, ax = plt.subplots()
 sns.boxplot(data=filtered_data[['Employment_demanded', 'Employment_offered', 'Employment_Availed']], ax=ax)
 st.pyplot(fig)
 
-# Histogram of Crop Production
-st.write("#### Distribution of Crop Production (in Tonnes)")
-fig, ax = plt.subplots()
-ax.hist(filtered_data['Production_(in_Tonnes)'], bins=20, color='skyblue', edgecolor='black')
-ax.set_xlabel('Production (Tonnes)')
-ax.set_ylabel('Frequency')
+# 3. High Employment Demand Analysis
+st.subheader("High Employment Demand Analysis")
+
+# Determine high employment demand: Get the top N states for each year
+top_n_employment = st.slider("Select the Top N States for Employment Demand", 1, 10, 5)
+
+# Group by year and state, then get the top N for each year based on Employment Demanded
+high_demand_data = data.groupby(['year', 'State_x'])[['Employment_demanded', 'Employment_offered', 'Yield_(kg/Ha)', 'Annual_rainfall']].mean().reset_index()
+
+# Filter for top N states based on employment demand for each year
+top_states_each_year = high_demand_data.groupby('year').apply(lambda x: x.nlargest(top_n_employment, 'Employment_demanded')).reset_index(drop=True)
+
+# Display the top states with high employment demand
+st.write(f"### Top {top_n_employment} States with Highest Employment Demand Each Year")
+st.write(top_states_each_year)
+
+# Plot Employment Demanded vs Offered for Top States
+st.write("### Employment Demanded vs Offered for Top States with High Employment Demand")
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.scatterplot(x='Employment_demanded', y='Employment_offered', hue='State_x', data=top_states_each_year, ax=ax, s=100, palette='coolwarm')
+ax.set_xlabel('Employment Demanded')
+ax.set_ylabel('Employment Offered')
+ax.set_title('Employment Demanded vs Employment Offered for Top States')
 st.pyplot(fig)
 
-# Density Plot of Annual Rainfall
-st.write("#### Distribution of Annual Rainfall")
+# 4. Analysis of Agricultural Factors for High Employment Demand Years
+st.subheader("Analysis of Agricultural Factors in High Employment Demand Years")
+
+# Create scatter plots for Yield, Rainfall, and Employment Demanded for top states
+st.write("### Crop Yield vs Employment Demanded in High Employment Demand Years")
 fig, ax = plt.subplots()
-sns.kdeplot(filtered_data['Annual_rainfall'], shade=True, color="green", ax=ax)
-ax.set_xlabel('Annual Rainfall (mm)')
-st.pyplot(fig)
-
-# 3. Time Series Analysis
-st.subheader("Time Series Analysis")
-
-# Plot with Moving Averages for Production
-st.write("### Time Series: Crop Production with Moving Average")
-fig, ax = plt.subplots()
-ax.plot(filtered_data['year'], filtered_data['Production_(in_Tonnes)'], label='Production (Tonnes)', color='blue')
-ax.plot(filtered_data['year'], filtered_data['Production_(in_Tonnes)'].rolling(window=3).mean(), label='3-Year Moving Average', linestyle='--', color='red')
-ax.set_xlabel('Year')
-ax.set_ylabel('Production (Tonnes)')
-ax.legend()
-st.pyplot(fig)
-
-# Rolling Sum for Employment Demanded
-st.write("### Time Series: Employment Demanded with Rolling Sum")
-fig, ax = plt.subplots()
-ax.plot(filtered_data['year'], filtered_data['Employment_demanded'], label='Employment Demanded', color='purple')
-ax.plot(filtered_data['year'], filtered_data['Employment_demanded'].rolling(window=3).sum(), label='3-Year Rolling Sum', linestyle='--', color='orange')
-ax.set_xlabel('Year')
-ax.set_ylabel('Employment Demanded')
-ax.legend()
-st.pyplot(fig)
-
-# 4. Correlation and Pair Plot Analysis
-st.subheader("Correlation and Relationship Analysis")
-
-# Correlation Heatmap
-st.write("### Correlation Heatmap")
-correlation_cols = ['Rural_Population', 'No_of_Registered', 'Employment_demanded', 'Employment_offered',
-                    'Employment_Availed', 'Area_(in_Ha)', 'Production_(in_Tonnes)', 'Yield_(kg/Ha)',
-                    'MSP', 'Annual_rainfall', 'WPI']
-correlation_data = filtered_data[correlation_cols].corr()
-fig, ax = plt.subplots(figsize=(10,8))
-sns.heatmap(correlation_data, annot=True, cmap='coolwarm', ax=ax)
-st.pyplot(fig)
-
-# Pair Plot for Key Metrics
-st.write("### Pairplot for Key Metrics")
-pairplot_cols = ['Employment_demanded', 'Production_(in_Tonnes)', 'Yield_(kg/Ha)', 'Annual_rainfall']
-sns.pairplot(filtered_data[pairplot_cols])
-st.pyplot()
-
-# 5. Relationship Between Agricultural Productivity and Rural Employment Demand
-st.subheader("Relationship Between Agricultural Productivity and Rural Employment Demand")
-
-# Scatter plot with regression line for Crop Production vs Employment Demanded
-st.write("### Crop Production vs Employment Demanded")
-fig, ax = plt.subplots()
-sns.regplot(x='Production_(in_Tonnes)', y='Employment_demanded', data=filtered_data, ax=ax, scatter_kws={'color': 'blue'}, line_kws={'color': 'red'})
-ax.set_xlabel('Production (in Tonnes)')
+sns.scatterplot(x='Yield_(kg/Ha)', y='Employment_demanded', hue='State_x', data=top_states_each_year, ax=ax, s=100, palette='viridis')
+ax.set_xlabel('Crop Yield (kg/Ha)')
 ax.set_ylabel('Employment Demanded')
 st.pyplot(fig)
 
-# Scatter plot with regression line for Rainfall vs Employment Demanded
-st.write("### Annual Rainfall vs Employment Demanded")
+st.write("### Rainfall vs Employment Demanded in High Employment Demand Years")
 fig, ax = plt.subplots()
-sns.regplot(x='Annual_rainfall', y='Employment_demanded', data=filtered_data, ax=ax, scatter_kws={'color': 'green'}, line_kws={'color': 'red'})
+sns.scatterplot(x='Annual_rainfall', y='Employment_demanded', hue='State_x', data=top_states_each_year, ax=ax, s=100, palette='coolwarm')
 ax.set_xlabel('Annual Rainfall (mm)')
 ax.set_ylabel('Employment Demanded')
 st.pyplot(fig)
 
-# Scatter plot with regression line for Yield vs Employment Demanded
-st.write("### Crop Yield vs Employment Demanded")
-fig, ax = plt.subplots()
-sns.regplot(x='Yield_(kg/Ha)', y='Employment_demanded', data=filtered_data, ax=ax, scatter_kws={'color': 'purple'}, line_kws={'color': 'red'})
-ax.set_xlabel('Yield (kg/Ha)')
-ax.set_ylabel('Employment Demanded')
-st.pyplot(fig)
+# Correlation between Employment Demanded and Agricultural Factors for top states in high demand years
+st.write("### Correlation Between Employment Demanded and Agricultural Factors for High Employment Demand Years")
+correlation_top_states = top_states_each_year[['Employment_demanded', 'Yield_(kg/Ha)', 'Annual_rainfall']].corr()
+st.write(correlation_top_states)
 
-# Display correlation between Employment Demanded and key agricultural metrics
-st.write("### Correlation Between Employment Demanded and Agricultural Metrics")
-corr_employment_production = filtered_data[['Employment_demanded', 'Production_(in_Tonnes)', 'Annual_rainfall', 'Yield_(kg/Ha)']].corr()
-st.write(corr_employment_production)
-
-# 6. Top N Analysis
-st.subheader("Top N Analysis")
-top_n = st.slider("Select Top N", 1, 10, 5)
-top_metric = st.selectbox("Select a metric for ranking", ['Production_(in_Tonnes)', 'Yield_(kg/Ha)', 'Employment_demanded'])
-
-st.write(f"### Top {top_n} States Based on {top_metric}")
-top_states = data.groupby('State_x')[[top_metric]].mean().nlargest(top_n, top_metric).reset_index()
-
-fig, ax = plt.subplots()
-sns.barplot(x='State_x', y=top_metric, data=top_states, ax=ax)
-ax.set_xlabel('State')
-ax.set_ylabel(top_metric)
-st.pyplot(fig)
-
-# 7. Prediction Model for Crop Yield
+# 5. Prediction Model for Crop Yield
 st.subheader("Prediction Model for Crop Yield")
 
 # Features for prediction
@@ -175,4 +120,4 @@ st.write(f"Predicted Yield (kg/Ha): {predicted_yield:.2f}")
 
 # Conclusion Section
 st.write("### Conclusion")
-st.write("This detailed analysis explores the relationship between agricultural productivity and rural employment demand under MGNREGA.")
+st.write("This detailed analysis examines high employment demand years and evaluates the related agricultural and employment metrics.")
