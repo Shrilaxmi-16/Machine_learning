@@ -47,4 +47,4 @@ When does the demand for rural employment(In MGNREGA) increase ? For example, if
 
 ### Final Output 
 
-* https://mgnregagri.streamlit.app
+* https://machinelearning16.streamlit.app/
